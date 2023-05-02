@@ -58,6 +58,40 @@ public class MainActivity extends Activity implements SensorEventListener {
             yValueTextView.setText("Y: " + String.format("%.2f", y) + " μT");
             zValueTextView.setText("Z: " + String.format("%.2f", z) + " μT");
             mValueTextView.setText("M: " + String.format("%.2f", m) + " μT");
+
+            if(m >= 100){
+                mValueTextView.setTextColor(getResources().getColor(R.color.level11));
+            }
+            if(m < 100){
+                mValueTextView.setTextColor(getResources().getColor(R.color.level10));
+            }
+            if(m < 90){
+                mValueTextView.setTextColor(getResources().getColor(R.color.level9));
+            }
+            if(m < 85){
+                mValueTextView.setTextColor(getResources().getColor(R.color.level8));
+            }
+            if(m < 80){
+                mValueTextView.setTextColor(getResources().getColor(R.color.level7));
+            }
+            if(m < 75){
+                mValueTextView.setTextColor(getResources().getColor(R.color.level6));
+            }
+            if(m < 70){
+                mValueTextView.setTextColor(getResources().getColor(R.color.level5));
+            }
+            if(m < 65){
+                mValueTextView.setTextColor(getResources().getColor(R.color.level4));
+            }
+            if(m < 60){
+                mValueTextView.setTextColor(getResources().getColor(R.color.level3));
+            }
+            if(m < 55){
+                mValueTextView.setTextColor(getResources().getColor(R.color.level2));
+            }
+            if(m < 50){
+                mValueTextView.setTextColor(getResources().getColor(R.color.level1));
+            }
         }
     }
 
