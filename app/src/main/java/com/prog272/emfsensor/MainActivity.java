@@ -2,18 +2,25 @@ package com.prog272.emfsensor;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.core.view.GestureDetectorCompat;
 
 public class MainActivity extends Activity implements SensorEventListener {
 
     private SensorManager sensorManager;
     private Sensor magneticFieldSensor;
     private TextView xValueTextView, yValueTextView, zValueTextView, mValueTextView;
+    private GestureDetectorCompat gestureDetectorCompat;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -25,6 +32,8 @@ public class MainActivity extends Activity implements SensorEventListener {
         zValueTextView = findViewById(R.id.zValueTextView);
         mValueTextView = findViewById(R.id.mValueTextView);
 
+        gestureDetectorCompat = new GestureDetectorCompat(this, new MyGestureListener());
+
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         magneticFieldSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
@@ -32,6 +41,12 @@ public class MainActivity extends Activity implements SensorEventListener {
             // No magnetic field sensor available on this device
             finish();
         }
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        gestureDetectorCompat.onTouchEvent(event);
+        return super.onTouchEvent(event);
     }
 
     @Override
@@ -98,5 +113,39 @@ public class MainActivity extends Activity implements SensorEventListener {
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
         // Do nothing
+    }
+
+    private class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
+        private static final int SWIPE_THRESHOLD = 100;
+        private static final int SWIPE_VELOCITY_THRESHOLD = 100;
+
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            boolean result = false;
+            try {
+                float diffX = e1.getX() - e2.getX();
+                float diffY = e1.getY() - e2.getY();
+
+                if (Math.abs(diffX) > Math.abs(diffY) &&
+                        Math.abs(diffX) > SWIPE_THRESHOLD &&
+                        Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
+                    if (diffX > 0) {
+                        onSwipeLeft();
+                    }
+                    result = true;
+                }
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
+            return result;
+        }
+    }
+
+    private void onSwipeLeft() {
+        Toast.makeText(this, "Swiped left!", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(MainActivity.this, MapActivity.class);
+        startActivity(intent);
+
+        overridePendingTransition(R.anim.transition2_1, R.anim.transition2_2);
     }
 }
