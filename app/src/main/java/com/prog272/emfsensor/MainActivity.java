@@ -7,19 +7,30 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.TextView;
-
+import android.widget.ImageView;
 public class MainActivity extends Activity implements SensorEventListener {
 
     private SensorManager sensorManager;
     private Sensor magneticFieldSensor;
     private TextView xValueTextView, yValueTextView, zValueTextView, mValueTextView;
+    private ImageView imageView;
+
+    private Sensor sensorAccelerometer;
+    private Sensor sensorMagneticField;
+
+    private float[] floatGravity = new float[3];
+    private float[] floatGeoMagnetic = new float[3];
+
+    private float[] floatOrientation = new float[3];
+    private float[] floatRotationMatrix = new float[9];
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        imageView = findViewById(R.id.imageview);
         xValueTextView = findViewById(R.id.xValueTextView);
         yValueTextView = findViewById(R.id.yValueTextView);
         zValueTextView = findViewById(R.id.zValueTextView);
@@ -27,12 +38,50 @@ public class MainActivity extends Activity implements SensorEventListener {
 
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         magneticFieldSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        sensorAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
         if (magneticFieldSensor == null) {
             // No magnetic field sensor available on this device
             finish();
         }
+
+        SensorEventListener sensorEventListenerAccelrometer = new SensorEventListener() {
+            @Override
+            public void onSensorChanged(SensorEvent event) {
+                floatGravity = event.values;
+
+                SensorManager.getRotationMatrix(floatRotationMatrix, null, floatGravity, floatGeoMagnetic);
+                SensorManager.getOrientation(floatRotationMatrix, floatOrientation);
+
+                imageView.setRotation((float) (-floatOrientation[0]*180/3.14159));
+            }
+
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int accuracy) {
+            }
+        };
+
+        SensorEventListener sensorEventListenerMagneticField = new SensorEventListener() {
+            @Override
+            public void onSensorChanged(SensorEvent event) {
+                floatGeoMagnetic = event.values;
+
+                SensorManager.getRotationMatrix(floatRotationMatrix, null, floatGravity, floatGeoMagnetic);
+                SensorManager.getOrientation(floatRotationMatrix, floatOrientation);
+
+                imageView.setRotation((float) (-floatOrientation[0]*180/3.14159));
+            }
+
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int accuracy) {
+            }
+        };
+        sensorManager.registerListener(sensorEventListenerAccelrometer, sensorAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(sensorEventListenerMagneticField, sensorMagneticField, SensorManager.SENSOR_DELAY_NORMAL);
+
     }
+
+
 
     @Override
     protected void onResume() {
@@ -98,5 +147,10 @@ public class MainActivity extends Activity implements SensorEventListener {
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
         // Do nothing
+    }
+    public void ResetButton(View view){
+        imageView.setRotation(180);
+
+
     }
 }
