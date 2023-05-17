@@ -1,17 +1,26 @@
 package com.prog272.emfsensor;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.view.GestureDetectorCompat;
-
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
-
+import android.widget.TextView;
 import android.widget.Toast;
 
-public class MapActivity extends AppCompatActivity {
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.view.GestureDetectorCompat;
 
+public class MapActivity extends AppCompatActivity implements LocationListener {
+
+    private static final int PERMISSION_REQUEST_CODE = 1;
+    private LocationManager locationManager;
+    private TextView coordinatesTextView;
     private GestureDetectorCompat gestureDetectorCompat;
 
     @Override
@@ -21,7 +30,50 @@ public class MapActivity extends AppCompatActivity {
         getSupportActionBar().hide();
 
         gestureDetectorCompat = new GestureDetectorCompat(this, new MapActivity.MyGestureListener());
+        coordinatesTextView = findViewById(R.id.coordinatesTextView);
+        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_CODE);
+        } else {
+            startLocationUpdates();
+        }
     }
+
+    private void startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 0, this);
+        }
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        double latitude = location.getLatitude();
+        double longitude = location.getLongitude();
+
+        String coordinates = "Latitude: " + latitude + "\nLongitude: " + longitude;
+        coordinatesTextView.setText(coordinates);
+    }
+
+    // Implement other LocationListener methods (onProviderEnabled, onProviderDisabled, onStatusChanged)
+    // if necessary, but leave them empty for this example.
+
+    @Override
+    public void onProviderEnabled(String provider) {
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+    }
+
+    //Swipe to change the view
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {

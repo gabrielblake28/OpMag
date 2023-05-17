@@ -8,6 +8,7 @@
     tools:context=".MapActivity">
 
     <TextView
+        android:id="@+id/coordinatesTextView"
         android:text="Map View"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
