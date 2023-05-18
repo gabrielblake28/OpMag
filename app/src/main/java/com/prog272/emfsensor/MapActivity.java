@@ -1,11 +1,13 @@
 package com.prog272.emfsensor;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -22,16 +24,21 @@ public class MapActivity extends AppCompatActivity implements LocationListener {
     private LocationManager locationManager;
     private TextView coordinatesTextView;
     private GestureDetectorCompat gestureDetectorCompat;
+    private GLSurfaceView gLView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_map);
-        getSupportActionBar().hide();
+        gLView = new MyGLSurfaceView(this);
+        setContentView(gLView);
 
         gestureDetectorCompat = new GestureDetectorCompat(this, new MapActivity.MyGestureListener());
         coordinatesTextView = findViewById(R.id.coordinatesTextView);
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -55,7 +62,7 @@ public class MapActivity extends AppCompatActivity implements LocationListener {
         double longitude = location.getLongitude();
 
         String coordinates = "Latitude: " + latitude + "\nLongitude: " + longitude;
-        coordinatesTextView.setText(coordinates);
+        //coordinatesTextView.setText(coordinates);
     }
 
     // Implement other LocationListener methods (onProviderEnabled, onProviderDisabled, onStatusChanged)
@@ -113,5 +120,22 @@ public class MapActivity extends AppCompatActivity implements LocationListener {
         startActivity(intent);
 
         overridePendingTransition(R.anim.transition1_1, R.anim.transition1_2);
+    }
+}
+
+class MyGLSurfaceView extends GLSurfaceView {
+
+    private final MyOpenGLRenderer renderer;
+
+    public MyGLSurfaceView(Context context){
+        super(context);
+
+        // Create an OpenGL ES 2.0 context
+        setEGLContextClientVersion(2);
+
+        renderer = new MyOpenGLRenderer();
+
+        // Set the Renderer for drawing on the GLSurfaceView
+        setRenderer(renderer);
     }
 }
