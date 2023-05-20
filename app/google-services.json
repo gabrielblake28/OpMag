@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1019645680594",
+    "project_id": "magnetism-80779",
+    "storage_bucket": "magnetism-80779.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1019645680594:android:1902a51fd1fdd9dd35060b",
+        "android_client_info": {
+          "package_name": "com.prog272.emfsensor"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1019645680594-iqmi9apjrs2do1mr5e8rdumksa3qcob9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBMVPnsUbTIKlz7GKen7iRbRJhj6rq6Kyg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1019645680594-iqmi9apjrs2do1mr5e8rdumksa3qcob9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
