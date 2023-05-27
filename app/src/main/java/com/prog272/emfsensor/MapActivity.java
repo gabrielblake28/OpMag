@@ -12,11 +12,17 @@ import android.os.Bundle;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.view.GestureDetectorCompat;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 public class MapActivity extends AppCompatActivity implements LocationListener {
 
@@ -46,6 +52,40 @@ public class MapActivity extends AppCompatActivity implements LocationListener {
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_CODE);
         } else {
             startLocationUpdates();
+        }
+    }
+
+    private void writeLocalData(){
+        String data = "Hello, world!"; // The data to be written
+        String fileName = "example.txt"; // The name of the file
+
+        try {
+            FileOutputStream fos = new FileOutputStream(new File(getApplicationContext().getFilesDir(), fileName));
+            fos.write(data.getBytes());
+            fos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadLocalData(){
+        String fileName = "example.txt"; // The name of the file
+
+        try {
+            FileInputStream fis = new FileInputStream(new File(getApplicationContext().getFilesDir(), fileName));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append("\n");
+            }
+            fis.close();
+
+            String fileContents = sb.toString();
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -90,7 +130,7 @@ public class MapActivity extends AppCompatActivity implements LocationListener {
 
     private class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
         private static final int SWIPE_THRESHOLD = 100;
-        private static final int SWIPE_VELOCITY_THRESHOLD = 100;
+        private static final int SWIPE_VELOCITY_THRESHOLD = 50;
 
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
@@ -115,12 +155,13 @@ public class MapActivity extends AppCompatActivity implements LocationListener {
     }
 
     private void onSwipeRight() {
-        Toast.makeText(this, "Swiped right!", Toast.LENGTH_SHORT).show();
+        // Toast.makeText(this, "Exiting Map View", Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(MapActivity.this, MainActivity.class);
         startActivity(intent);
 
         overridePendingTransition(R.anim.transition1_1, R.anim.transition1_2);
     }
+
 }
 
 class MyGLSurfaceView extends GLSurfaceView {

@@ -4,40 +4,55 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 
+import java.util.Random;
+
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 public class MyOpenGLRenderer implements GLSurfaceView.Renderer {
 
-    private Triangle mTriangle1;
-    private Triangle mTriangle2;
-    private Square   mSquare;
+    public Square[] drawList;
+    public Square[] localData;
 
     // vPMatrix is an abbreviation for "Model View Projection Matrix"
     private final float[] vPMatrix = new float[16];
     private final float[] projectionMatrix = new float[16];
     private final float[] viewMatrix = new float[16];
 
-    static float triangleCoords1[] = {
-            -0.01f,  0.01f, 0.0f,   // top left
-            -0.01f, -0.01f, 0.0f,   // bottom left
-            0.01f, -0.01f, 0.0f, };  // bottom right
-
-    static float triangleCoords2[] = {
-            -0.01f,  0.01f, 0.0f,   // bottom left
-            0.01f, -0.01f, 0.0f,   // bottom right
-            0.01f,  0.01f, 0.0f,  };  // bottom right
-
-    static float color[] = {1.0f, 0.0f, 0.0f, 1.0f};
-
     public void onSurfaceCreated(GL10 unused, EGLConfig config) {
         // Set the background frame color
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        // initialize a triangle
-        mTriangle1 = new Triangle(triangleCoords1, color);
-        mTriangle2 = new Triangle(triangleCoords2, color);
-        // initialize a square
-        mSquare = new Square();
+        localData = loadDummyData();
+        drawList = new Square[localData.length];
+
+        for(int i = 0; i < localData.length; i++){
+            drawList[i] = localData[i];
+        }
+
+    }
+
+    private Square[] loadDummyData(){
+        final int RANGE = 10;
+        final int COUNT = 200;
+        final float SCALE = 0.1f;
+        final float ORIGIN = 0.5f;
+        Random random = new Random();
+        Square[] sqrs = new Square[COUNT];
+
+        for(int i = 0; i < COUNT; i++){
+            float colorScale = random.nextInt(10)*0.1f;
+            sqrs[i] = new Square(
+                    -ORIGIN + i%RANGE*SCALE,
+                    ORIGIN - random.nextInt(RANGE)*SCALE,
+                    SCALE,
+                    new float[]{0.0f + colorScale,
+                                1.0f - colorScale,
+                                0.0f,
+                                0.0f
+                    }
+            );
+        }
+        return sqrs;
     }
 
     public void onDrawFrame(GL10 unused) {
@@ -50,9 +65,11 @@ public class MyOpenGLRenderer implements GLSurfaceView.Renderer {
         // Calculate the projection and view transformation
         Matrix.multiplyMM(vPMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
 
-        // Draw shape
-        mTriangle1.draw(vPMatrix);
-        mTriangle2.draw(vPMatrix);
+        // Draw shapes
+        for(int i = 0; i < drawList.length; i++){
+            drawList[i].t1.draw(vPMatrix);
+            drawList[i].t2.draw(vPMatrix);
+        }
     }
 
     @Override
