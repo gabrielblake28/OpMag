@@ -232,7 +232,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     private class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
         private static final int SWIPE_THRESHOLD = 100;
-        private static final int SWIPE_VELOCITY_THRESHOLD = 100;
+        private static final int SWIPE_VELOCITY_THRESHOLD = 50;
 
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
@@ -257,7 +257,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     }
 
     private void onSwipeLeft() {
-        Toast.makeText(this, "Swiped left!", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Loading Data", Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(MainActivity.this, MapActivity.class);
         startActivity(intent);
 
