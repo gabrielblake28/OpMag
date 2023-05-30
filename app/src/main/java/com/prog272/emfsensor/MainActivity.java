@@ -8,10 +8,26 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+
+
 
 import androidx.core.view.GestureDetectorCompat;
 
@@ -22,6 +38,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     private TextView xValueTextView, yValueTextView, zValueTextView, mValueTextView;
     private GestureDetectorCompat gestureDetectorCompat;
 
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,7 +48,6 @@ public class MainActivity extends Activity implements SensorEventListener {
         yValueTextView = findViewById(R.id.yValueTextView);
         zValueTextView = findViewById(R.id.zValueTextView);
         mValueTextView = findViewById(R.id.mValueTextView);
-
         gestureDetectorCompat = new GestureDetectorCompat(this, new MyGestureListener());
 
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -41,6 +57,12 @@ public class MainActivity extends Activity implements SensorEventListener {
             // No magnetic field sensor available on this device
             finish();
         }
+    }
+
+    public static String[] writeToLocalFile() {
+        String[] array = new String[0];
+
+        return array;
     }
 
     @Override
@@ -148,4 +170,85 @@ public class MainActivity extends Activity implements SensorEventListener {
 
         overridePendingTransition(R.anim.transition2_1, R.anim.transition2_2);
     }
+
+
+    public static void writeToFile(Context context, String fileName, String content) {
+        try {
+
+            String packageName = context.getPackageName();
+
+            FileOutputStream fOut = new FileOutputStream(new File(context.getApplicationInfo().dataDir, fileName), true);
+
+
+            fOut.write(content.getBytes());
+
+            fOut.flush();
+            fOut.close();
+
+
+        } catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    public static void readFromFile(Context context, String filename) {
+
+        ArrayList<String> data = new ArrayList<>();
+
+                try {
+                    File file = new File(context.getApplicationInfo().dataDir, filename);
+                    FileReader fileReader = new FileReader(file);
+
+                    // Create a BufferedReader to read text from the FileReader
+                    BufferedReader bufferedReader = new BufferedReader(fileReader);
+
+                    // Read each line from the file
+                    String line;
+                    while ((line = bufferedReader.readLine()) != null) {
+                        data.add(line);
+                    }
+                    System.out.println(data);
+                    System.out.println(data.get(1));
+                    // Close the BufferedReader
+                    bufferedReader.close();
+                }
+                catch(Exception e)
+                {
+                    e.printStackTrace();
+                }
+    }
+
+    public static void clearData(Context context, String filename) {
+        try {
+            File file = new File(context.getApplicationInfo().dataDir, filename);
+            FileWriter fileWriter = new FileWriter(file, false);
+
+            // Write an empty string to the file
+            fileWriter.write("");
+
+            // Close the FileWriter
+            fileWriter.close();
+
+            System.out.println("File content deleted successfully.");
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+
+    public void startRecording(View MainActivity) {
+        Toast.makeText(this, "Recording Started!", Toast.LENGTH_SHORT).show();
+        writeToFile(MainActivity.this, "\\myData.txt", String.format("xCord,yCord,zCord,timestamp\n"));
+        readFromFile(MainActivity.this, "\\myData.txt");
+    }
+
+    public void stopRecording(View MainActivity) {
+        Toast.makeText(this, "Recording Complete!", Toast.LENGTH_SHORT).show();
+        // Read data from file readFromFile(MainActivity.this, "\\myData.txt");
+        // Once read and used, delete data clearData(MainActivity.this, "\\myData.txt");
+    }
+
 }
