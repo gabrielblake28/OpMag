@@ -8,44 +8,44 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.view.GestureDetectorCompat;
 
-
-import android.Manifest;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.Timestamp;
-import com.google.firebase.firestore.FieldValue;
 
-
-import java.lang.reflect.Field;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class MainActivity extends Activity implements SensorEventListener {
 
     FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+    // Used for the compass
+    private ImageView imageView;
+    private Sensor sensorAccelerometer;
+    private float[] floatGravity = new float[3];
+    private float[] floatGeoMagnetic = new float[3];
+    private float[] floatOrientation = new float[3];
+    private float[] floatRotationMatrix = new float[9];
+
     private SensorManager sensorManager;
     private Sensor magneticFieldSensor;
     private TextView xValueTextView, yValueTextView, zValueTextView, mValueTextView;
@@ -59,6 +59,10 @@ public class MainActivity extends Activity implements SensorEventListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // The image view for the compass
+        imageView = findViewById(R.id.imageview);
+        imageView.setImageResource(R.drawable.arrow);
+
 
         xValueTextView = findViewById(R.id.xValueTextView);
         yValueTextView = findViewById(R.id.yValueTextView);
@@ -69,6 +73,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         magneticFieldSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        sensorAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
 
         if (magneticFieldSensor == null) {
             // No magnetic field sensor available on this device
@@ -99,6 +105,41 @@ public class MainActivity extends Activity implements SensorEventListener {
 
             }
         });
+
+        SensorEventListener sensorEventListenerAccelrometer = new SensorEventListener() {
+            @Override
+            public void onSensorChanged(SensorEvent event) {
+                floatGravity = event.values;
+
+                SensorManager.getRotationMatrix(floatRotationMatrix, null, floatGravity, floatGeoMagnetic);
+                SensorManager.getOrientation(floatRotationMatrix, floatOrientation);
+
+                imageView.setRotation((float) (-floatOrientation[0]*180/3.14159));
+            }
+
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int accuracy) {
+            }
+        };
+
+        SensorEventListener sensorEventListenerMagneticField = new SensorEventListener() {
+            @Override
+            public void onSensorChanged(SensorEvent event) {
+                floatGeoMagnetic = event.values;
+
+                SensorManager.getRotationMatrix(floatRotationMatrix, null, floatGravity, floatGeoMagnetic);
+                SensorManager.getOrientation(floatRotationMatrix, floatOrientation);
+
+                imageView.setRotation((float) (-floatOrientation[0]*180/3.14159));
+            }
+
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int accuracy) {
+            }
+        };
+
+        sensorManager.registerListener(sensorEventListenerAccelrometer, sensorAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(sensorEventListenerMagneticField, magneticFieldSensor, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     public void onClick(){
@@ -125,7 +166,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        if (isRecording && event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
+        if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
+            int color;
             float x = event.values[0];
             float y = event.values[1];
             float z = event.values[2];
@@ -137,41 +179,63 @@ public class MainActivity extends Activity implements SensorEventListener {
             mValueTextView.setText("M: " + String.format("%.2f", m) + " μT");
 
             if (m >= 100) {
-                mValueTextView.setTextColor(getResources().getColor(R.color.level11));
+                color = getResources().getColor(R.color.level11);
+                mValueTextView.setTextColor(color);
+                imageView.setColorFilter(color);
             }
             if (m < 100) {
-                mValueTextView.setTextColor(getResources().getColor(R.color.level10));
+                color = getResources().getColor(R.color.level10);
+                mValueTextView.setTextColor(color);
+                imageView.setColorFilter(color);
             }
             if (m < 90) {
-                mValueTextView.setTextColor(getResources().getColor(R.color.level9));
+                color = getResources().getColor(R.color.level9);
+                mValueTextView.setTextColor(color);
+                imageView.setColorFilter(color);
             }
             if (m < 85) {
-                mValueTextView.setTextColor(getResources().getColor(R.color.level8));
+                color = getResources().getColor(R.color.level8);
+                mValueTextView.setTextColor(color);
+                imageView.setColorFilter(color);;
             }
             if (m < 80) {
-                mValueTextView.setTextColor(getResources().getColor(R.color.level7));
+                color = getResources().getColor(R.color.level7);
+                mValueTextView.setTextColor(color);
+                imageView.setColorFilter(color);
             }
             if (m < 75) {
-                mValueTextView.setTextColor(getResources().getColor(R.color.level6));
+                color = getResources().getColor(R.color.level6);
+                mValueTextView.setTextColor(color);
+                imageView.setColorFilter(color);
             }
             if (m < 70) {
-                mValueTextView.setTextColor(getResources().getColor(R.color.level5));
+                color = getResources().getColor(R.color.level5);
+                mValueTextView.setTextColor(color);
+                imageView.setColorFilter(color);
             }
             if (m < 65) {
-                mValueTextView.setTextColor(getResources().getColor(R.color.level4));
+                color = getResources().getColor(R.color.level4);
+                mValueTextView.setTextColor(color);
+                imageView.setColorFilter(color);
             }
             if (m < 60) {
-                mValueTextView.setTextColor(getResources().getColor(R.color.level3));
+                color = getResources().getColor(R.color.level3);
+                mValueTextView.setTextColor(color);
+                imageView.setColorFilter(color);
             }
             if (m < 55) {
-                mValueTextView.setTextColor(getResources().getColor(R.color.level2));
+                color = getResources().getColor(R.color.level2);
+                mValueTextView.setTextColor(color);
+                imageView.setColorFilter(color);
             }
             if (m < 50) {
-                mValueTextView.setTextColor(getResources().getColor(R.color.level1));
+                color = getResources().getColor(R.color.level1);
+                mValueTextView.setTextColor(color);
+                imageView.setColorFilter(color);
             }
 
 
-            if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
+            if (isRecording && event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
 
 
                 isRecording = true;
