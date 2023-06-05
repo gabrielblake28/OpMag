@@ -20,7 +20,8 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.view.GestureDetectorCompat;
-
+import java.util.Timer;
+import java.util.TimerTask;
 
 import android.Manifest;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -35,7 +36,13 @@ import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.FieldValue;
 
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,6 +60,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     private boolean isRecording = false;
     private static final String TAG = "MainActivity";
+    private Timer timer;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -81,10 +89,10 @@ public class MainActivity extends Activity implements SensorEventListener {
             @Override
             public void onClick(View view) {
                 isRecording = true;
-                TextView message = findViewById(R.id.message);
-                message.setText("Recording");
-
-
+                if (timer == null) {
+                    timer = new Timer(); // Reset the timer reference
+                }
+                Toast.makeText(MainActivity.this, "Recording Started!", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -93,10 +101,14 @@ public class MainActivity extends Activity implements SensorEventListener {
             @Override
             public void onClick(View view) {
                 isRecording = false;
-                TextView message = findViewById(R.id.messageTwo);
-                message.setText("Stopped");
-
-
+                if (timer != null) {
+                    timer.cancel();
+                    timer = null;
+                }
+                Toast.makeText(MainActivity.this, "Recording Stopped!", Toast.LENGTH_SHORT).show();
+                ArrayList<String> data = readFromFile(MainActivity.this, "\\myData.txt");
+                clearData(MainActivity.this, "\\myData.txt");
+                System.out.println(data);
             }
         });
     }
@@ -126,6 +138,8 @@ public class MainActivity extends Activity implements SensorEventListener {
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (isRecording && event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
+
+
             float x = event.values[0];
             float y = event.values[1];
             float z = event.values[2];
@@ -171,56 +185,65 @@ public class MainActivity extends Activity implements SensorEventListener {
             }
 
 
-            if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
+            TimerTask task = new TimerTask() {
+                @Override
+                public void run() {
+                    String Content = String.format("%s,%s,%s,%s,%s", FieldValue.serverTimestamp(), m, x, y, z);
+                    writeToFile(MainActivity.this, "\\myData.txt", Content + "\n" );
+                    System.out.println("recording");
+                }
+            };
 
+            timer.schedule(task, 0, 5000);
 
-                isRecording = true;
+//                isRecording = true;
+
 
                 // PUT new data
-                Map<String, Object> user = new HashMap<>();
-
-                user.put("TimeStamp", FieldValue.serverTimestamp());
-
-                user.put("Microteslas", m);
-
-                user.put("PhoneCoordsX", x);
-                user.put("PhoneCoordsY", y);
-                user.put("PhoneCoordsZ", z);
+//                Map<String, Object> user = new HashMap<>();
+//
+//                user.put("TimeStamp", FieldValue.serverTimestamp());
+//
+//                user.put("Microteslas", m);
+//
+//                user.put("PhoneCoordsX", x);
+//                user.put("PhoneCoordsY", y);
+//                user.put("PhoneCoordsZ", z);
 
 
                 // Add a new document with a generated ID
-                db.collection("EdTest01")
-                        .add(user)
-                        .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                            @Override
-                            public void onSuccess(DocumentReference documentReference) {
-                                Log.d(TAG, "DocumentSnapshot added with ID: " + documentReference.getId());
-                            }
-                        })
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Log.w(TAG, "Error adding document", e);
-                            }
-                        });
+//                db.collection("EdTest01")
+//                        .add(user)
+//                        .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+//                            @Override
+//                            public void onSuccess(DocumentReference documentReference) {
+//                                Log.d(TAG, "DocumentSnapshot added with ID: " + documentReference.getId());
+//                            }
+//                        })
+//                        .addOnFailureListener(new OnFailureListener() {
+//                            @Override
+//                            public void onFailure(@NonNull Exception e) {
+//                                Log.w(TAG, "Error adding document", e);
+//                            }
+//                        });
 
 
                 // Add the new code snippet here
-                db.collection("EdTest01")
-                        .get()
-                        .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                            @Override
-                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                                if (task.isSuccessful()) {
-                                    for (QueryDocumentSnapshot document : task.getResult()) {
-                                        Log.d(TAG, document.getId() + " => " + document.getData());
-                                    }
-                                } else {
-                                    Log.w(TAG, "Error getting documents.", task.getException());
-                                }
-                            }
-                        });
-            }
+//                db.collection("EdTest01")
+//                        .get()
+//                        .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+//                            @Override
+//                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+//                                if (task.isSuccessful()) {
+//                                    for (QueryDocumentSnapshot document : task.getResult()) {
+//                                        Log.d(TAG, document.getId() + " => " + document.getData());
+//                                    }
+//                                } else {
+//                                    Log.w(TAG, "Error getting documents.", task.getException());
+//                                }
+//                            }
+//                        });
+
         }
     }
 
@@ -263,5 +286,79 @@ public class MainActivity extends Activity implements SensorEventListener {
 
         overridePendingTransition(R.anim.transition2_1, R.anim.transition2_2);
     }
+
+    public static void writeToFile(Context context, String fileName, String content) {
+        try {
+
+            String packageName = context.getPackageName();
+
+            FileOutputStream fOut = new FileOutputStream(new File(context.getApplicationInfo().dataDir, fileName), true);
+
+
+            fOut.write(content.getBytes());
+
+            fOut.flush();
+            fOut.close();
+
+
+        } catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    public static ArrayList<String> readFromFile(Context context, String filename) {
+
+        ArrayList<String> data = new ArrayList<>();
+
+        try {
+            File file = new File(context.getApplicationInfo().dataDir, filename);
+            FileReader fileReader = new FileReader(file);
+
+            // Create a BufferedReader to read text from the FileReader
+            BufferedReader bufferedReader = new BufferedReader(fileReader);
+
+            // Read each line from the file
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                data.add(line);
+            }
+            System.out.println(data);
+//            System.out.println(data.get(1));
+            // Close the BufferedReader
+            bufferedReader.close();
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+
+        return data;
+    }
+
+    public static void clearData(Context context, String filename) {
+        try {
+            File file = new File(context.getApplicationInfo().dataDir, filename);
+            FileWriter fileWriter = new FileWriter(file, false);
+
+            // Write an empty string to the file
+            fileWriter.write("");
+
+            // Close the FileWriter
+            fileWriter.close();
+
+            System.out.println("File content deleted successfully.");
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+//    public void startRecording(View MainActivity) {
+//        Toast.makeText(this, "Recording Started!", Toast.LENGTH_SHORT).show();
+//        writeToFile(MainActivity.this, "\\myData.txt", String.format("xCord,yCord,zCord,timestamp\n"));
+//        readFromFile(MainActivity.this, "\\myData.txt", timer);
+//    }
 
 }
