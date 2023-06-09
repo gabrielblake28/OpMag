@@ -2,24 +2,25 @@ package com.prog272.emfsensor;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.core.view.GestureDetectorCompat;
+import androidx.core.app.ActivityCompat;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -34,7 +35,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MainActivity extends Activity implements SensorEventListener {
+public class MainActivity extends Activity implements SensorEventListener, LocationListener {
 
     FirebaseFirestore db = FirebaseFirestore.getInstance();
 
@@ -49,27 +50,35 @@ public class MainActivity extends Activity implements SensorEventListener {
     private SensorManager sensorManager;
     private Sensor magneticFieldSensor;
     private TextView xValueTextView, yValueTextView, zValueTextView, mValueTextView;
-    private GestureDetectorCompat gestureDetectorCompat;
 
     private boolean isRecording = false;
     private static final String TAG = "MainActivity";
+
+    private static final int PERMISSION_REQUEST_CODE = 1;
+    private LocationManager locationManager;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        GLSurfaceView glSurfaceView = findViewById(R.id.gl_surface_view);
+        glSurfaceView.setEGLContextClientVersion(2);
+        glSurfaceView.setRenderer(new MyOpenGLRenderer());
+        glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+
         // The image view for the compass
         imageView = findViewById(R.id.imageview);
         imageView.setImageResource(R.drawable.arrow);
 
+        //Get the location manager
+        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
         xValueTextView = findViewById(R.id.xValueTextView);
         yValueTextView = findViewById(R.id.yValueTextView);
         zValueTextView = findViewById(R.id.zValueTextView);
         mValueTextView = findViewById(R.id.mValueTextView);
 
-        gestureDetectorCompat = new GestureDetectorCompat(this, new MyGestureListener());
 
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         magneticFieldSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
@@ -105,6 +114,14 @@ public class MainActivity extends Activity implements SensorEventListener {
 
             }
         });
+
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_CODE);
+        } else {
+            startLocationUpdates();
+        }
 
         SensorEventListener sensorEventListenerAccelrometer = new SensorEventListener() {
             @Override
@@ -147,9 +164,27 @@ public class MainActivity extends Activity implements SensorEventListener {
     }
 
     @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        gestureDetectorCompat.onTouchEvent(event);
-        return super.onTouchEvent(event);
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startLocationUpdates();
+            } else {
+                // Permission denied, handle accordingly
+            }
+        }
+    }
+
+    private void startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000L, 10f, this);
+        }
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        double latitude = location.getLatitude();
+        double longitude = location.getLongitude();
     }
 
     @Override
@@ -292,40 +327,6 @@ public class MainActivity extends Activity implements SensorEventListener {
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
         // Do nothing
-    }
-
-    private class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
-        private static final int SWIPE_THRESHOLD = 100;
-        private static final int SWIPE_VELOCITY_THRESHOLD = 50;
-
-        @Override
-        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-            boolean result = false;
-            try {
-                float diffX = e1.getX() - e2.getX();
-                float diffY = e1.getY() - e2.getY();
-
-                if (Math.abs(diffX) > Math.abs(diffY) &&
-                        Math.abs(diffX) > SWIPE_THRESHOLD &&
-                        Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
-                    if (diffX > 0) {
-                        onSwipeLeft();
-                    }
-                    result = true;
-                }
-            } catch (Exception exception) {
-                exception.printStackTrace();
-            }
-            return result;
-        }
-    }
-
-    private void onSwipeLeft() {
-        Toast.makeText(this, "Loading Data", Toast.LENGTH_SHORT).show();
-        Intent intent = new Intent(MainActivity.this, MapActivity.class);
-        startActivity(intent);
-
-        overridePendingTransition(R.anim.transition2_1, R.anim.transition2_2);
     }
 
 }

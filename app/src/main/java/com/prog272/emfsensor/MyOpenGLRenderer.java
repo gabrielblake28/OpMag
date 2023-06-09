@@ -4,7 +4,8 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 
-import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -19,6 +20,16 @@ public class MyOpenGLRenderer implements GLSurfaceView.Renderer {
     private final float[] projectionMatrix = new float[16];
     private final float[] viewMatrix = new float[16];
 
+    private Timer timer = new Timer();
+    private TimerTask timerTask = new TimerTask() {
+        @Override
+        public void run() {
+            bIsYouAreHereShowing = !bIsYouAreHereShowing;
+        }
+    };
+    private Boolean bIsYouAreHereShowing = true;
+    private Square youAreHereSquare;
+
     public void onSurfaceCreated(GL10 unused, EGLConfig config) {
         // Set the background frame color
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -29,25 +40,27 @@ public class MyOpenGLRenderer implements GLSurfaceView.Renderer {
             drawList[i] = localData[i];
         }
 
+        timer.scheduleAtFixedRate(timerTask, 0L, 1000L);
+        youAreHereSquare = new Square(0f, 0f, 0.1f, new float[]{100f, 100f, 100f, 0f});
+
+
     }
 
     private Square[] loadDummyData(){
-        final int RANGE = 10;
-        final int COUNT = 200;
+        final int RANGE = 20;
+        final int COUNT = 400;
         final float SCALE = 0.1f;
-        final float ORIGIN = 0.5f;
-        Random random = new Random();
+        final float ORIGIN = 1.0f;
         Square[] sqrs = new Square[COUNT];
 
         for(int i = 0; i < COUNT; i++){
-            float colorScale = random.nextInt(10)*0.1f;
             sqrs[i] = new Square(
-                    -ORIGIN + i%RANGE*SCALE,
-                    ORIGIN - random.nextInt(RANGE)*SCALE,
+                    -1.0f + 0.1f*(i%RANGE),
+                    1.0f - 0.1f*(Math.floorDiv(i, RANGE)),
                     SCALE,
-                    new float[]{0.0f + colorScale,
-                                1.0f - colorScale,
-                                0.0f,
+                    new float[]{0.1f,
+                                0.1f,
+                                0.1f,
                                 0.0f
                     }
             );
@@ -65,11 +78,21 @@ public class MyOpenGLRenderer implements GLSurfaceView.Renderer {
         // Calculate the projection and view transformation
         Matrix.multiplyMM(vPMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
 
+
+
         // Draw shapes
-        for(int i = 0; i < drawList.length; i++){
-            drawList[i].t1.draw(vPMatrix);
-            drawList[i].t2.draw(vPMatrix);
+
+         for(int i = 0; i < drawList.length; i++){
+                    drawList[i].t1.draw(vPMatrix);
+                    drawList[i].t2.draw(vPMatrix);
+                }
+         // Draw the you are here location
+        if(bIsYouAreHereShowing){
+            youAreHereSquare.t1.draw(vPMatrix);
+            youAreHereSquare.t2.draw(vPMatrix);
         }
+
+
     }
 
     @Override

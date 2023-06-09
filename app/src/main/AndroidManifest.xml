@@ -14,9 +14,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.EMFSensor">
         <activity
-            android:name=".MapActivity"
-            android:exported="false" />
-        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
