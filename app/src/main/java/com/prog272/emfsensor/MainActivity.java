@@ -57,6 +57,16 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     private static final int PERMISSION_REQUEST_CODE = 1;
     private LocationManager locationManager;
 
+    private double originX;
+    private double originY;
+    private TextView coordinatesTextView;
+    private long lastUpdate;
+    private float lastX, lastY, lastZ;
+    private static final int SHAKE_THRESHOLD = 10;
+    private float locX = 0f;
+    private float locY = 0f;
+
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,6 +83,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
 
         //Get the location manager
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        coordinatesTextView = findViewById(R.id.coordinatesTextView);
 
         xValueTextView = findViewById(R.id.xValueTextView);
         yValueTextView = findViewById(R.id.yValueTextView);
@@ -126,6 +137,34 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         SensorEventListener sensorEventListenerAccelrometer = new SensorEventListener() {
             @Override
             public void onSensorChanged(SensorEvent event) {
+
+                if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+                    long currentTime = System.currentTimeMillis();
+                    if ((currentTime - lastUpdate) > 100) {
+                        long timeDiff = (currentTime - lastUpdate);
+                        lastUpdate = currentTime;
+
+                        float x = event.values[0];
+                        float y = event.values[1];
+                        float z = event.values[2];
+
+                        float acceleration = Math.abs(x + y - lastX - lastY) / timeDiff * 10000;
+
+                        if (acceleration > SHAKE_THRESHOLD) {
+                            float diffX = x - lastX;
+                            float diffY = y - lastY;
+                            locX += (diffX) / timeDiff * 1000;
+                            locY += (diffY) / timeDiff * 1000;
+
+                            coordinatesTextView.setText("x: " + locX + "\ny: " + locY);
+                        }
+
+                        lastX = x;
+                        lastY = y;
+                        lastZ = z;
+                    }
+                }
+
                 floatGravity = event.values;
 
                 SensorManager.getRotationMatrix(floatRotationMatrix, null, floatGravity, floatGeoMagnetic);
@@ -177,7 +216,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     private void startLocationUpdates() {
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000L, 10f, this);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1L, 1f, this);
         }
     }
 
@@ -185,6 +224,13 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     public void onLocationChanged(Location location) {
         double latitude = location.getLatitude();
         double longitude = location.getLongitude();
+
+        if(originX == 0){
+            originX = longitude;
+            originY = latitude;
+        }
+
+
     }
 
     @Override

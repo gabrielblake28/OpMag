@@ -78,8 +78,6 @@ public class MyOpenGLRenderer implements GLSurfaceView.Renderer {
         // Calculate the projection and view transformation
         Matrix.multiplyMM(vPMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
 
-
-
         // Draw shapes
 
          for(int i = 0; i < drawList.length; i++){
