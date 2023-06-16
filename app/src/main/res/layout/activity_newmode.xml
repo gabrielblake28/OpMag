@@ -5,7 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
 
-    tools:context=".MainActivity">
+    tools:context=".MainActivity2">
+
 
     <ImageView
         android:id="@+id/imageview"
@@ -20,35 +21,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0"
         app:srcCompat="@drawable/arrow" />
-
-    <ImageView
-        android:id="@+id/arrowImageView"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
-        android:layout_centerInParent="true"
-        android:layout_marginTop="260dp"
-        android:layout_marginEnd="20dp"
-        android:rotation="90"
-        android:src="@drawable/arrow2"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <ImageView
-        android:id="@+id/scaleBar"
-        android:layout_width="43dp"
-        android:layout_height="250dp"
-        android:layout_centerInParent="true"
-        android:layout_marginStart="6dp"
-        android:layout_marginTop="32dp"
-        android:layout_marginEnd="64dp"
-        android:layout_marginBottom="18dp"
-        android:src="@drawable/scale_bar"
-        app:layout_constraintBottom_toTopOf="@+id/zValueTextView"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.666"
-        app:layout_constraintStart_toEndOf="@+id/title"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
 
     <Button
         android:id="@+id/submitButton"
@@ -93,7 +65,7 @@
         android:layout_height="37dp"
         android:layout_marginLeft="128dp"
         android:layout_marginTop="188dp"
-
+        android:textColor="#000000"
         android:textSize="18sp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@id/recordButton"
@@ -107,7 +79,7 @@
         android:scaleX="1.25"
         android:scaleY="1.25"
         android:text="n/a"
-
+        android:textColor="#FFFFFF"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHorizontal_bias="0.115"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -122,7 +94,7 @@
         android:scaleX="1.25"
         android:scaleY="1.25"
         android:text="n/a"
-
+        android:textColor="#FFFFFF"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHorizontal_bias="0.115"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -137,7 +109,7 @@
         android:scaleX="1.25"
         android:scaleY="1.25"
         android:text="n/a"
-
+        android:textColor="#FFFFFF"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHorizontal_bias="0.115"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -149,10 +121,10 @@
         android:id="@+id/mValueTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:scaleX="1.25"
+        android:scaleX="1.75"
         android:scaleY="1.25"
         android:text="0.00"
-
+        android:textColor="#FFFFFF"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHorizontal_bias="0.117"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -160,24 +132,13 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.321" />
 
-    <TextView
-        android:id="@+id/helpfulTip"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="500dp"
-        android:text="Swipe up to change modes."
-
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.432"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/zValueTextView" />
 
     <Button
         android:id="@+id/helpButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="272dp"
-        android:text="?"
+        android:text="yo"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
