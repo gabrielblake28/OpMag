@@ -39,7 +39,7 @@ public class Triangle {
     static final int COORDS_PER_VERTEX = 3;
 
     // Set color with red, green, blue and alpha (opacity) values
-    private float Color[];
+    public float Color[];
 
     public Triangle( float triangleCoords[], float color[]) {
 

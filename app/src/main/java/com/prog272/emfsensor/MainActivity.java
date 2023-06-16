@@ -10,43 +10,37 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.MediaPlayer;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-import android.util.Log;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import androidx.annotation.NonNull;
+import android.widget.Toast;
+
 import androidx.core.app.ActivityCompat;
-import androidx.core.view.GestureDetectorCompat;
-import java.util.Timer;
-import java.util.TimerTask;
-import android.Manifest;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.firestore.DocumentReference;
+
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends Activity implements SensorEventListener, LocationListener {
 
     FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+    public static int[] colorMatrix = new int[400];
 
     // Used for the compass
     private ImageView imageView;
@@ -62,7 +56,12 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
 
     private boolean isRecording = false;
     private static final String TAG = "MainActivity";
-    private Timer timer;
+    private Timer timer = new Timer();
+
+    private MediaPlayer mediaPlayer;
+
+    private int magLevel = 0;
+    private int prevMagLevel = 0; // mag levels are used to trigger sound and set the color based on magnitude.
 
     private static final int PERMISSION_REQUEST_CODE = 1;
     private LocationManager locationManager;
@@ -99,7 +98,6 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         yValueTextView = findViewById(R.id.yValueTextView);
         zValueTextView = findViewById(R.id.zValueTextView);
         mValueTextView = findViewById(R.id.mValueTextView);
-
 
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         magneticFieldSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
@@ -147,6 +145,31 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         } else {
             startLocationUpdates();
         }
+
+
+        TimerTask dataViewTask = new TimerTask() {
+            @Override
+            public void run() {
+                colorMatrix[0] = magLevel;
+                for(int i = 399; i > 0; i--){
+                    colorMatrix[i] = colorMatrix[i-1];
+                }
+            }
+        };
+        timer.schedule(dataViewTask, 0l, 100l);
+
+        mediaPlayer = MediaPlayer.create(this, R.raw.beep);
+
+        TimerTask playSoundTask = new TimerTask() {
+            @Override
+            public void run() {
+                if((magLevel > prevMagLevel || magLevel > 9) && magLevel > 2){
+                    mediaPlayer.start();
+                }
+                prevMagLevel = magLevel;
+            }
+        };
+        timer.schedule(playSoundTask, 0l, 100l);
 
         SensorEventListener sensorEventListenerAccelrometer = new SensorEventListener() {
             @Override
@@ -212,6 +235,15 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         sensorManager.registerListener(sensorEventListenerMagneticField, magneticFieldSensor, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mediaPlayer != null) {
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
+    }
+
     public void onClick(){
 
     }
@@ -262,7 +294,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     @Override
     public void onSensorChanged(SensorEvent event) {
 
-        if (isRecording && event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
+        if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
            int color;
 
 
@@ -280,75 +312,80 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
                 color = getResources().getColor(R.color.level11);
                 mValueTextView.setTextColor(color);
                 imageView.setColorFilter(color);
+                magLevel = 11;
             }
             if (m < 100) {
                 color = getResources().getColor(R.color.level10);
                 mValueTextView.setTextColor(color);
                 imageView.setColorFilter(color);
+                magLevel = 10;
             }
             if (m < 90) {
                 color = getResources().getColor(R.color.level9);
                 mValueTextView.setTextColor(color);
                 imageView.setColorFilter(color);
+                magLevel = 9;
             }
             if (m < 85) {
                 color = getResources().getColor(R.color.level8);
                 mValueTextView.setTextColor(color);
-                imageView.setColorFilter(color);;
+                imageView.setColorFilter(color);
+                magLevel = 8;
             }
             if (m < 80) {
                 color = getResources().getColor(R.color.level7);
                 mValueTextView.setTextColor(color);
                 imageView.setColorFilter(color);
+                magLevel = 7;
             }
             if (m < 75) {
                 color = getResources().getColor(R.color.level6);
                 mValueTextView.setTextColor(color);
                 imageView.setColorFilter(color);
+                magLevel = 6;
             }
             if (m < 70) {
                 color = getResources().getColor(R.color.level5);
                 mValueTextView.setTextColor(color);
                 imageView.setColorFilter(color);
+                magLevel = 5;
             }
             if (m < 65) {
                 color = getResources().getColor(R.color.level4);
                 mValueTextView.setTextColor(color);
                 imageView.setColorFilter(color);
+                magLevel = 4;
             }
             if (m < 60) {
                 color = getResources().getColor(R.color.level3);
                 mValueTextView.setTextColor(color);
                 imageView.setColorFilter(color);
+                magLevel = 3;
             }
             if (m < 55) {
                 color = getResources().getColor(R.color.level2);
                 mValueTextView.setTextColor(color);
                 imageView.setColorFilter(color);
+                magLevel = 2;
             }
             if (m < 50) {
                 color = getResources().getColor(R.color.level1);
                 mValueTextView.setTextColor(color);
                 imageView.setColorFilter(color);
+                magLevel = 1;
             }
 
-
-// <<<<<<< JoesBranch
-//             if (isRecording && event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-
-
-                isRecording = true;
-// =======
-            TimerTask task = new TimerTask() {
-                @Override
-                public void run() {
-                    String Content = String.format("%s,%s,%s,%s,%s", FieldValue.serverTimestamp(), m, x, y, z);
-                    writeToFile(MainActivity.this, "\\myData.txt", Content + "\n" );
-                    System.out.println("recording");
-                }
-            };
-
-            timer.schedule(task, 0, 5000);
+            if(isRecording){
+                TimerTask task = new TimerTask() {
+                    @Override
+                    public void run() {
+                        String Content = String.format("%s,%s,%s,%s,%s", FieldValue.serverTimestamp(), m, x, y, z);
+                        writeToFile(MainActivity.this, "\\myData.txt", Content + "\n" );
+                        System.out.println("recording");
+                    }
+                };
+                timer.schedule(task, 0, 5000);
+            }
 
 //                isRecording = true;
 
@@ -436,10 +473,6 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
 
     private void onSwipeLeft() {
         Toast.makeText(this, "Loading Data", Toast.LENGTH_SHORT).show();
-        Intent intent = new Intent(MainActivity.this, MapActivity.class);
-        startActivity(intent);
-
-        overridePendingTransition(R.anim.transition2_1, R.anim.transition2_2);
     }
 
     public static void writeToFile(Context context, String fileName, String content) {
@@ -510,7 +543,11 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         }
     }
 
-//    public void startRecording(View MainActivity) {
+    public static int[] getColorMatrix() {
+        return colorMatrix;
+    }
+
+    //    public void startRecording(View MainActivity) {
 //        Toast.makeText(this, "Recording Started!", Toast.LENGTH_SHORT).show();
 //        writeToFile(MainActivity.this, "\\myData.txt", String.format("xCord,yCord,zCord,timestamp\n"));
 //        readFromFile(MainActivity.this, "\\myData.txt", timer);
