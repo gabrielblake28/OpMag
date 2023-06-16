@@ -4,9 +4,6 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
@@ -20,16 +17,6 @@ public class MyOpenGLRenderer implements GLSurfaceView.Renderer {
     private final float[] projectionMatrix = new float[16];
     private final float[] viewMatrix = new float[16];
 
-    private Timer timer = new Timer();
-    private TimerTask timerTask = new TimerTask() {
-        @Override
-        public void run() {
-            bIsYouAreHereShowing = !bIsYouAreHereShowing;
-        }
-    };
-    private Boolean bIsYouAreHereShowing = true;
-    private Square youAreHereSquare;
-
     public void onSurfaceCreated(GL10 unused, EGLConfig config) {
         // Set the background frame color
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -39,9 +26,6 @@ public class MyOpenGLRenderer implements GLSurfaceView.Renderer {
         for(int i = 0; i < localData.length; i++){
             drawList[i] = localData[i];
         }
-
-        timer.scheduleAtFixedRate(timerTask, 0L, 1000L);
-        youAreHereSquare = new Square(0f, 0f, 0.1f, new float[]{100f, 100f, 100f, 0f});
 
 
     }
@@ -78,19 +62,60 @@ public class MyOpenGLRenderer implements GLSurfaceView.Renderer {
         // Calculate the projection and view transformation
         Matrix.multiplyMM(vPMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
 
+        // Set the colors for each shape
+        int[] colorMatrix = MainActivity.getColorMatrix();
+
         // Draw shapes
 
          for(int i = 0; i < drawList.length; i++){
-                    drawList[i].t1.draw(vPMatrix);
-                    drawList[i].t2.draw(vPMatrix);
-                }
-         // Draw the you are here location
-        if(bIsYouAreHereShowing){
-            youAreHereSquare.t1.draw(vPMatrix);
-            youAreHereSquare.t2.draw(vPMatrix);
-        }
 
+             float[] color;
 
+             switch (colorMatrix[i]) {
+                 case 1:
+                     color = new float[]{0f, 1.0f, 0f, 1f};
+                     break;
+                 case 2:
+                     color = new float[]{0.1f, 0.9f, 0f, 1f};
+                     break;
+                 case 3:
+                     color = new float[]{0.2f, 0.8f, 0f, 1f};
+                     break;
+                 case 4:
+                     color = new float[]{0.3f, 0.7f, 0f, 1f};
+                     break;
+                 case 5:
+                     color = new float[]{0.4f, 0.6f, 0f, 1f};
+                     break;
+                 case 6:
+                     color = new float[]{0.5f, 0.5f, 0f, 1f};
+                     break;
+                 case 7:
+                     color = new float[]{0.6f, 0.4f, 0f, 1f};
+                     break;
+                 case 8:
+                     color = new float[]{0.7f, 0.3f, 0f, 1f};
+                     break;
+                 case 9:
+                     color = new float[]{0.8f, 0.2f, 0f, 1f};
+                     break;
+                 case 10:
+                     color = new float[]{0.9f, 0.1f, 0f, 1f};
+                     break;
+                 case 11:
+                     color = new float[]{1.0f, 0f, 0f, 1f};
+                     break;
+                 default:
+                     color = new float[]{0.0f, 0f, 0f, 1f};
+                     break;
+             }
+
+            drawList[i].t1.Color = color;
+            drawList[i].t2.Color = color;
+            drawList[i].t1.draw(vPMatrix);
+            drawList[i].t2.draw(vPMatrix);
+
+            }
     }
 
     @Override
