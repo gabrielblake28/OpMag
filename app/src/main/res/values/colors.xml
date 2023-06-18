@@ -19,4 +19,7 @@
     <color name="level9">#C84100</color>
     <color name="level10">#E12800</color>
     <color name="level11">#FA0F00</color>
+
+    <color name="swipeBackground">#FF0000</color>
+
 </resources>

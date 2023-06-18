@@ -4,6 +4,8 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 
+import java.util.Random;
+
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
@@ -27,24 +29,25 @@ public class MyOpenGLRenderer implements GLSurfaceView.Renderer {
             drawList[i] = localData[i];
         }
 
-
     }
 
     private Square[] loadDummyData(){
-        final int RANGE = 20;
-        final int COUNT = 400;
+        final int RANGE = 10;
+        final int COUNT = 200;
         final float SCALE = 0.1f;
-        final float ORIGIN = 1.0f;
+        final float ORIGIN = 0.5f;
+        Random random = new Random();
         Square[] sqrs = new Square[COUNT];
 
         for(int i = 0; i < COUNT; i++){
+            float colorScale = random.nextInt(10)*0.1f;
             sqrs[i] = new Square(
-                    -1.0f + 0.1f*(i%RANGE),
-                    1.0f - 0.1f*(Math.floorDiv(i, RANGE)),
+                    -ORIGIN + i%RANGE*SCALE,
+                    ORIGIN - random.nextInt(RANGE)*SCALE,
                     SCALE,
-                    new float[]{0.1f,
-                                0.1f,
-                                0.1f,
+                    new float[]{0.0f + colorScale,
+                                1.0f - colorScale,
+                                0.0f,
                                 0.0f
                     }
             );
@@ -62,60 +65,14 @@ public class MyOpenGLRenderer implements GLSurfaceView.Renderer {
         // Calculate the projection and view transformation
         Matrix.multiplyMM(vPMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
 
-        // Set the colors for each shape
-        int[] colorMatrix = MainActivity.getColorMatrix();
-
         // Draw shapes
-
-         for(int i = 0; i < drawList.length; i++){
-
-             float[] color;
-
-             switch (colorMatrix[i]) {
-                 case 1:
-                     color = new float[]{0f, 1.0f, 0f, 1f};
-                     break;
-                 case 2:
-                     color = new float[]{0.1f, 0.9f, 0f, 1f};
-                     break;
-                 case 3:
-                     color = new float[]{0.2f, 0.8f, 0f, 1f};
-                     break;
-                 case 4:
-                     color = new float[]{0.3f, 0.7f, 0f, 1f};
-                     break;
-                 case 5:
-                     color = new float[]{0.4f, 0.6f, 0f, 1f};
-                     break;
-                 case 6:
-                     color = new float[]{0.5f, 0.5f, 0f, 1f};
-                     break;
-                 case 7:
-                     color = new float[]{0.6f, 0.4f, 0f, 1f};
-                     break;
-                 case 8:
-                     color = new float[]{0.7f, 0.3f, 0f, 1f};
-                     break;
-                 case 9:
-                     color = new float[]{0.8f, 0.2f, 0f, 1f};
-                     break;
-                 case 10:
-                     color = new float[]{0.9f, 0.1f, 0f, 1f};
-                     break;
-                 case 11:
-                     color = new float[]{1.0f, 0f, 0f, 1f};
-                     break;
-                 default:
-                     color = new float[]{0.0f, 0f, 0f, 1f};
-                     break;
-             }
-
-            drawList[i].t1.Color = color;
-            drawList[i].t2.Color = color;
+        for(int i = 0; i < drawList.length; i++){
             drawList[i].t1.draw(vPMatrix);
-            drawList[i].t2.draw(vPMatrix);
 
-            }
+
+
+            drawList[i].t2.draw(vPMatrix);
+        }
     }
 
     @Override
