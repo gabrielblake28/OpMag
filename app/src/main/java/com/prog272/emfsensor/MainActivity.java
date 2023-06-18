@@ -93,9 +93,11 @@ public class MainActivity extends Activity implements SensorEventListener {
         imageView = findViewById(R.id.imageview);
         imageView.setImageResource(R.drawable.arrow);
 
-        int startingColor = ContextCompat.getColor(this, R.color.teal_200); // Replace R.color.newColor with the desired color resource
+        int startingColor = ContextCompat.getColor(this, R.color.teal_200);
+
 
         imageView.setColorFilter(startingColor);
+
 
 
 
@@ -123,19 +125,36 @@ public class MainActivity extends Activity implements SensorEventListener {
             finish();
         }
 
-
+        //record button
         Button output = findViewById(R.id.recordButton);
         output.setOnClickListener(new OnClickListener() {
             @Override
+
+            //record button if hit twice
             public void onClick(View view) {
-                isRecording = true;
-                if (timer == null) {
-                    timer = new Timer(); // Reset the timer reference
+                if (isRecording) {
+                    isRecording = false;
+                    if (timer != null) {
+                        timer.cancel();
+                        timer = null;
+                    }
+                    Toast.makeText(MainActivity.this, "Recording Stopped!", Toast.LENGTH_SHORT).show();
+                    ArrayList<String> data = readFromFile(MainActivity.this, "\\myData.txt");
+                    clearData(MainActivity.this, "\\myData.txt");
+                    System.out.println(data);
+
+                    //record button if hit once
+                } else {
+                    isRecording = true;
+                    if (timer == null) {
+                        timer = new Timer(); // Reset the timer reference
+                    }
+                    Toast.makeText(MainActivity.this, "Recording Started!", Toast.LENGTH_SHORT).show();
                 }
-                Toast.makeText(MainActivity.this, "Recording Started!", Toast.LENGTH_SHORT).show();
             }
         });
 
+        //submit button
         Button outputTwo = findViewById(R.id.submitButton);
         outputTwo.setOnClickListener(new OnClickListener() {
             @Override

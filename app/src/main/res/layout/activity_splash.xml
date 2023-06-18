@@ -21,11 +21,18 @@
         app:layout_constraintVertical_bias="0.498" />
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/textLogo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="560dp"
+        android:layout_marginEnd="184dp"
+        android:rotationX="4"
+        android:scaleX="2"
+        android:scaleY="2"
         android:text="OpMag"
-        tools:layout_editor_absoluteX="176dp"
-        tools:layout_editor_absoluteY="124dp" />
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        android:textColor="@color/black"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
