@@ -21,6 +21,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+
+
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GestureDetectorCompat;
 
@@ -45,15 +47,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Timer;
-import java.util.TimerTask;
 
-import java.util.HashMap;
-import java.util.Map;
 
 public class MainActivity extends Activity implements SensorEventListener {
 
@@ -61,6 +55,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     // Used for the compass
     private ImageView imageView;
+    private ImageView arrowView;
     private Sensor sensorAccelerometer;
     private float[] floatGravity = new float[3];
     private float[] floatGeoMagnetic = new float[3];
@@ -591,10 +586,10 @@ public class MainActivity extends Activity implements SensorEventListener {
 //    }
 
     private int currentBackgroundIndex = 0;
-    private int[] backgroundResources = {R.drawable.gradient_background, R.drawable.darkest_gradient, R.drawable.black_background, R.drawable.cyan_background, R.drawable.lightest_gradient, R.drawable.black_gradient};
+    private int[] backgroundResources = {R.drawable.gradient_background, R.drawable.darkest_gradient, R.drawable.black_background, R.drawable.lightest_gradient, R. drawable.splash_background, R.drawable.cyan_background, R.drawable.black_gradient};
 
     private int currentTextColorIndex = 0;
-    private int[] textColorResources = {R.color.white, R.color.white, R.color.white, R.color.black, R.color.black, R.color.white};
+    private int[] textColorResources = {R.color.white, R.color.white, R.color.white, R.color.black, R.color.white, R.color.black, R.color.white};
 
     private void onSwipeUp() {
         currentBackgroundIndex = (currentBackgroundIndex + 1) % backgroundResources.length;
@@ -611,7 +606,51 @@ public class MainActivity extends Activity implements SensorEventListener {
         hint.setTextColor(getResources().getColor(textColorResource));
 
         overridePendingTransition(R.anim.transition2_1, R.anim.transition2_2);
+
+        if (currentBackgroundIndex == 3) {
+            onSwipeUpGreen();
+        }
+
+        if (currentBackgroundIndex != 3) {
+            onSwipeUpRegular();
+        }
+
     }
+
+    private void onSwipeUpGreen() {
+
+
+        // The image view for the arrow
+        arrowView = findViewById(R.id.arrowImageView);
+        arrowView.setImageResource(R.drawable.greenarrowleftagain);
+        int startingColorArrow = ContextCompat.getColor(this, R.color.black);
+        arrowView.setColorFilter(startingColorArrow);
+
+        // The image view for the compass
+        imageView = findViewById(R.id.imageview);
+        imageView.setImageResource(R.drawable.arrow);
+        int startingColor = ContextCompat.getColor(this, R.color.black);
+        imageView.setColorFilter(startingColor);
+    }
+
+    private void onSwipeUpRegular() {
+
+
+        // The image view for the arrow
+        arrowView = findViewById(R.id.arrowImageView);
+        arrowView.setImageResource(R.drawable.greenarrowleftagain);
+        int startingColorArrow = ContextCompat.getColor(this, R.color.level1);
+        arrowView.setColorFilter(startingColorArrow);
+
+        // The image view for the compass
+        imageView = findViewById(R.id.imageview);
+        imageView.setImageResource(R.drawable.arrow);
+        int startingColor = ContextCompat.getColor(this, R.color.teal_200);
+        imageView.setColorFilter(startingColor);
+    }
+
+
+
 
 
 
@@ -630,6 +669,12 @@ public class MainActivity extends Activity implements SensorEventListener {
         yDefault.setTextColor(Color.WHITE);
         zDefault.setTextColor(Color.WHITE);
         hintDefault.setTextColor(Color.WHITE);
+    }
+
+    public static int[] colorMatrix = new int[400];
+
+    public static int[] getColorMatrix() {
+        return colorMatrix;
     }
 
 }

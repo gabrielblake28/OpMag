@@ -22,6 +22,10 @@ public class SplashActivity extends AppCompatActivity {
         Typeface typeface = ResourcesCompat.getFont(this, R.font.futurabolditalic);
         logoText.setTypeface(typeface);
 
+        TextView logoTextMag = findViewById(R.id.textLogoMag);
+        Typeface typefaceMag = ResourcesCompat.getFont(this, R.font.futurabolditalic);
+        logoTextMag.setTypeface(typefaceMag);
+
 
         //Create new handler and post delayed runnable
         new Handler().postDelayed(new Runnable() {

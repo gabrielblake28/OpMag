@@ -25,13 +25,28 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="560dp"
-        android:layout_marginEnd="184dp"
+        android:layout_marginEnd="212dp"
         android:rotationX="4"
         android:scaleX="2"
         android:scaleY="2"
-        android:text="OpMag"
+        android:text="Op"
         android:textAppearance="@style/TextAppearance.AppCompat.Large"
         android:textColor="@color/black"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textLogoMag"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="560dp"
+        android:layout_marginEnd="136dp"
+        android:rotationX="4"
+        android:scaleX="2"
+        android:scaleY="2"
+        android:text="Mag"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        android:textColor="@color/swipeBackground"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
