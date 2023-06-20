@@ -43,9 +43,9 @@ public class MyOpenGLRenderer implements GLSurfaceView.Renderer {
                     1.0f - 0.1f*(Math.floorDiv(i, RANGE)),
                     SCALE,
                     new float[]{0.1f,
-                                0.1f,
-                                0.1f,
-                                0.0f
+                            0.1f,
+                            0.1f,
+                            0.0f
                     }
             );
         }
@@ -67,55 +67,55 @@ public class MyOpenGLRenderer implements GLSurfaceView.Renderer {
 
         // Draw shapes
 
-         for(int i = 0; i < drawList.length; i++){
+        for(int i = 0; i < drawList.length; i++){
 
-             float[] color;
+            float[] color;
 
-             switch (colorMatrix[i]) {
-                 case 1:
-                     color = new float[]{0f, 1.0f, 0f, 1f};
-                     break;
-                 case 2:
-                     color = new float[]{0.1f, 0.9f, 0f, 1f};
-                     break;
-                 case 3:
-                     color = new float[]{0.2f, 0.8f, 0f, 1f};
-                     break;
-                 case 4:
-                     color = new float[]{0.3f, 0.7f, 0f, 1f};
-                     break;
-                 case 5:
-                     color = new float[]{0.4f, 0.6f, 0f, 1f};
-                     break;
-                 case 6:
-                     color = new float[]{0.5f, 0.5f, 0f, 1f};
-                     break;
-                 case 7:
-                     color = new float[]{0.6f, 0.4f, 0f, 1f};
-                     break;
-                 case 8:
-                     color = new float[]{0.7f, 0.3f, 0f, 1f};
-                     break;
-                 case 9:
-                     color = new float[]{0.8f, 0.2f, 0f, 1f};
-                     break;
-                 case 10:
-                     color = new float[]{0.9f, 0.1f, 0f, 1f};
-                     break;
-                 case 11:
-                     color = new float[]{1.0f, 0f, 0f, 1f};
-                     break;
-                 default:
-                     color = new float[]{0.0f, 0f, 0f, 1f};
-                     break;
-             }
+            switch (colorMatrix[i]) {
+                case 1:
+                    color = new float[]{0f, 1.0f, 0f, 1f};
+                    break;
+                case 2:
+                    color = new float[]{0.1f, 0.9f, 0f, 1f};
+                    break;
+                case 3:
+                    color = new float[]{0.2f, 0.8f, 0f, 1f};
+                    break;
+                case 4:
+                    color = new float[]{0.3f, 0.7f, 0f, 1f};
+                    break;
+                case 5:
+                    color = new float[]{0.4f, 0.6f, 0f, 1f};
+                    break;
+                case 6:
+                    color = new float[]{0.5f, 0.5f, 0f, 1f};
+                    break;
+                case 7:
+                    color = new float[]{0.6f, 0.4f, 0f, 1f};
+                    break;
+                case 8:
+                    color = new float[]{0.7f, 0.3f, 0f, 1f};
+                    break;
+                case 9:
+                    color = new float[]{0.8f, 0.2f, 0f, 1f};
+                    break;
+                case 10:
+                    color = new float[]{0.9f, 0.1f, 0f, 1f};
+                    break;
+                case 11:
+                    color = new float[]{1.0f, 0f, 0f, 1f};
+                    break;
+                default:
+                    color = new float[]{0.0f, 0f, 0f, 1f};
+                    break;
+            }
 
             drawList[i].t1.Color = color;
             drawList[i].t2.Color = color;
             drawList[i].t1.draw(vPMatrix);
             drawList[i].t2.draw(vPMatrix);
 
-            }
+        }
     }
 
     @Override
