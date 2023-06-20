@@ -10,6 +10,8 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.MediaPlayer;
+import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -53,6 +55,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     FirebaseFirestore db = FirebaseFirestore.getInstance();
 
+    public static int[] colorMatrix = new int[400];
+
     // Used for the compass
     private ImageView imageView;
     private ImageView arrowView;
@@ -71,11 +75,21 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 
     private boolean isRecording = false;
+    private float m;
+    private float x;
+    private float y;
+    private float z;
     private boolean isArrowUp = false;
 
     private static final String TAG = "MainActivity";
 
-    private Timer timer;
+    private Timer timer = new Timer();
+    private Timer viewTimer = new Timer();
+
+    private MediaPlayer mediaPlayer;
+
+    private int magLevel = 0;
+    private int prevMagLevel = 0; // mag levels are used to trigger sound and set the color based on magnitude.
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -83,6 +97,11 @@ public class MainActivity extends Activity implements SensorEventListener {
         setContentView(R.layout.activity_main);
 
         noSwipe();
+
+        GLSurfaceView glSurfaceView = findViewById(R.id.gl_surface_view);
+        glSurfaceView.setEGLContextClientVersion(2);
+        glSurfaceView.setRenderer(new MyOpenGLRenderer());
+        glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 
         // The image view for the compass
         imageView = findViewById(R.id.imageview);
@@ -166,6 +185,44 @@ public class MainActivity extends Activity implements SensorEventListener {
             }
         });
 
+        TimerTask dataViewTask = new TimerTask() {
+            @Override
+            public void run() {
+                colorMatrix[0] = magLevel;
+                for(int i = 399; i > 0; i--){
+                    colorMatrix[i] = colorMatrix[i-1];
+                }
+            }
+        };
+        viewTimer.schedule(dataViewTask, 0l, 100l);
+
+        mediaPlayer = MediaPlayer.create(this, R.raw.beep);
+
+        TimerTask playSoundTask = new TimerTask() {
+            @Override
+            public void run() {
+                if((magLevel > prevMagLevel || magLevel > 9) && magLevel > 2){
+                    mediaPlayer.start();
+                }
+                prevMagLevel = magLevel;
+            }
+        };
+        viewTimer.schedule(playSoundTask, 0l, 100l);
+
+        //Moved Gabriel's code here
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                if(isRecording){
+                    String Content = String.format("%s,%s,%s,%s,%s", FieldValue.serverTimestamp(), m, x, y, z);
+                    writeToFile(MainActivity.this, "\\myData.txt", Content + "\n" );
+                    System.out.println("recording");
+                }
+
+            }
+        };
+
+        timer.schedule(task, 0, 5000);
 
 
         SensorEventListener sensorEventListenerAccelrometer = new SensorEventListener() {
@@ -228,12 +285,12 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        if (isRecording && event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
+        if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
+            int color;
 
-
-            float x = event.values[0];
-            float y = event.values[1];
-            float z = event.values[2];
+            x = event.values[0];
+            y = event.values[1];
+            z = event.values[2];
             double m = Math.sqrt((x * x) + (y * y) + (z * z));
 
 
@@ -336,76 +393,87 @@ public class MainActivity extends Activity implements SensorEventListener {
             animator.start();
 
 
-
-
-
             if (m >= 100) {
-                mValueTextView.setTextColor(getResources().getColor(R.color.level11));
-                int level11Color = ContextCompat.getColor(this, R.color.level11);
-                imageView.setColorFilter(level11Color);
+                color = getResources().getColor(R.color.level11);
+                mValueTextView.setTextColor(color);
+                imageView.setColorFilter(color);
+                magLevel = 11;
             }
             if (m < 100) {
-                mValueTextView.setTextColor(getResources().getColor(R.color.level10));
-                int level10Color = ContextCompat.getColor(this, R.color.level10);
-                imageView.setColorFilter(level10Color);
+                color = getResources().getColor(R.color.level10);
+                mValueTextView.setTextColor(color);
+                imageView.setColorFilter(color);
+                magLevel = 10;
             }
             if (m < 90) {
-                mValueTextView.setTextColor(getResources().getColor(R.color.level9));
-                int level9Color = ContextCompat.getColor(this, R.color.level9);
-                imageView.setColorFilter(level9Color);
+                color = getResources().getColor(R.color.level9);
+                mValueTextView.setTextColor(color);
+                imageView.setColorFilter(color);
+                magLevel = 9;
             }
             if (m < 85) {
-                mValueTextView.setTextColor(getResources().getColor(R.color.level8));
-                int level8Color = ContextCompat.getColor(this, R.color.level8);
-                imageView.setColorFilter(level8Color);
+                color = getResources().getColor(R.color.level8);
+                mValueTextView.setTextColor(color);
+                imageView.setColorFilter(color);
+                magLevel = 8;
             }
             if (m < 80) {
-                mValueTextView.setTextColor(getResources().getColor(R.color.level7));
-                int level7Color = ContextCompat.getColor(this, R.color.level7);
-                imageView.setColorFilter(level7Color);
+                color = getResources().getColor(R.color.level7);
+                mValueTextView.setTextColor(color);
+                imageView.setColorFilter(color);
+                magLevel = 7;
             }
             if (m < 75) {
-                mValueTextView.setTextColor(getResources().getColor(R.color.level6));
-                int level6Color = ContextCompat.getColor(this, R.color.level6);
-                imageView.setColorFilter(level6Color);
+                color = getResources().getColor(R.color.level6);
+                mValueTextView.setTextColor(color);
+                imageView.setColorFilter(color);
+                magLevel = 6;
             }
             if (m < 70) {
-                mValueTextView.setTextColor(getResources().getColor(R.color.level5));
-                int level5Color = ContextCompat.getColor(this, R.color.level5);
-                imageView.setColorFilter(level5Color);
+                color = getResources().getColor(R.color.level5);
+                mValueTextView.setTextColor(color);
+                imageView.setColorFilter(color);
+                magLevel = 5;
             }
             if (m < 65) {
-                mValueTextView.setTextColor(getResources().getColor(R.color.level4));
-                int level4Color = ContextCompat.getColor(this, R.color.level4);
-                imageView.setColorFilter(level4Color);
+                color = getResources().getColor(R.color.level4);
+                mValueTextView.setTextColor(color);
+                imageView.setColorFilter(color);
+                magLevel = 4;
             }
             if (m < 60) {
-                mValueTextView.setTextColor(getResources().getColor(R.color.level3));
-                int level3Color = ContextCompat.getColor(this, R.color.level3);
-                imageView.setColorFilter(level3Color);
+                color = getResources().getColor(R.color.level3);
+                mValueTextView.setTextColor(color);
+                imageView.setColorFilter(color);
+                magLevel = 3;
             }
             if (m < 55) {
-                mValueTextView.setTextColor(getResources().getColor(R.color.level2));
-                int level2Color = ContextCompat.getColor(this, R.color.level2);
-                imageView.setColorFilter(level2Color);
+                color = getResources().getColor(R.color.level2);
+                mValueTextView.setTextColor(color);
+                imageView.setColorFilter(color);
+                magLevel = 2;
             }
             if (m < 50) {
-                mValueTextView.setTextColor(getResources().getColor(R.color.level1));
-                int level1Color = ContextCompat.getColor(this, R.color.level1);
-                imageView.setColorFilter(level1Color);
+                color = getResources().getColor(R.color.level1);
+                mValueTextView.setTextColor(color);
+                imageView.setColorFilter(color);
+                magLevel = 1;
             }
 
+            if(isRecording){
+                TimerTask task = new TimerTask() {
+                    @Override
+                    public void run() {
+                        String Content = String.format("%s,%s,%s,%s,%s", FieldValue.serverTimestamp(), m, x, y, z);
+                        writeToFile(MainActivity.this, "\\myData.txt", Content + "\n" );
+                        System.out.println("recording");
+                    }
+                };
 
-            TimerTask task = new TimerTask() {
-                @Override
-                public void run() {
-                    String Content = String.format("%s,%s,%s,%s,%s", FieldValue.serverTimestamp(), m, x, y, z);
-                    writeToFile(MainActivity.this, "\\myData.txt", Content + "\n" );
-                    System.out.println("recording");
-                }
-            };
 
-            timer.schedule(task, 0, 5000);
+                timer.schedule(task, 0, 5000);
+            }
+
 
 //                isRecording = true;
 
@@ -670,8 +738,6 @@ public class MainActivity extends Activity implements SensorEventListener {
         zDefault.setTextColor(Color.WHITE);
         hintDefault.setTextColor(Color.WHITE);
     }
-
-    public static int[] colorMatrix = new int[400];
 
     public static int[] getColorMatrix() {
         return colorMatrix;
