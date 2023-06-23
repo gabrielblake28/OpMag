@@ -1,47 +1,32 @@
 package com.prog272.emfsensor;
 
+// Animations are used for the dial on the gauge
 import android.animation.Animator;
 import android.animation.ValueAnimator;
+import android.animation.ObjectAnimator;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+
+// Our project uses two sensors, the magnetic sensor and the accelerometer
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+
+// The media play is used to create sound as the sensor detects a stronger field than the background
 import android.media.MediaPlayer;
+
+// The surface view is used to display the color graph, which shows magnetic intensity over time
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+
+// Measurements are recorded to a text file on the device
 import android.util.Log;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.TextView;
-import android.widget.Toast;
-
-
-
-import androidx.core.content.ContextCompat;
-import androidx.core.view.GestureDetectorCompat;
-
-import com.google.firebase.firestore.FieldValue;
-import com.google.firebase.firestore.FirebaseFirestore;
-
-
-import android.animation.ObjectAnimator;
-
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-
-import java.util.Timer;
-import java.util.TimerTask;
-
-
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -50,11 +35,48 @@ import java.io.FileWriter;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 
+// We experimented with gestures and ended up using it to switch between background displays.
+import android.view.GestureDetector;
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+import androidx.core.view.GestureDetectorCompat;
+import android.view.MotionEvent;
+
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+// Toasts pop up when the user hits record.
+import android.widget.Toast;
+
+
+
+// Pressing the publish button pushes the stored text file up to an online database we created with mongo.
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+
+import java.util.HashMap;
+import java.util.Map;
+
+// Timers are used to control writing to the file system and updating the color graph
+import java.util.Timer;
+import java.util.TimerTask;
+
 
 public class MainActivity extends Activity implements SensorEventListener {
 
     FirebaseFirestore db = FirebaseFirestore.getInstance();
 
+    // colorMatrix holds the color values for each square drawn on the color graph, when the timer goes off, the color matrix is updated.
     public static int[] colorMatrix = new int[400];
 
     // Used for the compass
@@ -83,10 +105,14 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     private static final String TAG = "MainActivity";
 
+    // Two timers are used by the app, on to control writing to the file system, the other to control updating the color graph
     private Timer timer = new Timer();
     private Timer viewTimer = new Timer();
 
+    // Creates sound
     private MediaPlayer mediaPlayer;
+
+    // magLevel is fed into the color matrix to reflect the current strength of magnetism.
 
     private int magLevel = 0;
     private int prevMagLevel = 0; // mag levels are used to trigger sound and set the color based on magnitude.
@@ -98,6 +124,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
         noSwipe();
 
+        // Instantiates the openGL surface view
         GLSurfaceView glSurfaceView = findViewById(R.id.gl_surface_view);
         glSurfaceView.setEGLContextClientVersion(2);
         glSurfaceView.setRenderer(new MyOpenGLRenderer());
@@ -109,7 +136,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
         int startingColor = ContextCompat.getColor(this, R.color.teal_200);
 
-
+        // color filters change the color of the compass arrow
         imageView.setColorFilter(startingColor);
 
 
@@ -185,6 +212,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             }
         });
 
+        // when the timer goes off, each square in the color graph takes the color of the previous square, except the first square.
         TimerTask dataViewTask = new TimerTask() {
             @Override
             public void run() {
@@ -198,6 +226,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
         mediaPlayer = MediaPlayer.create(this, R.raw.beep);
 
+        // If the strength of the magnets is higher than background and getting stronger, make a beep
         TimerTask playSoundTask = new TimerTask() {
             @Override
             public void run() {
@@ -224,8 +253,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 
         timer.schedule(task, 0, 5000);
 
-
-        SensorEventListener sensorEventListenerAccelrometer = new SensorEventListener() {
+        // When motion is detected the compass is updated
+        SensorEventListener sensorEventListenerAccelerometer = new SensorEventListener() {
             @Override
             public void onSensorChanged(SensorEvent event) {
                 floatGravity = event.values;
@@ -240,6 +269,8 @@ public class MainActivity extends Activity implements SensorEventListener {
             public void onAccuracyChanged(Sensor sensor, int accuracy) {
             }
         };
+
+        // Magnetic sensor implementation
 
         SensorEventListener sensorEventListenerMagneticField = new SensorEventListener() {
             @Override
@@ -257,7 +288,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             }
         };
 
-        sensorManager.registerListener(sensorEventListenerAccelrometer, sensorAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(sensorEventListenerAccelerometer, sensorAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
         sensorManager.registerListener(sensorEventListenerMagneticField, magneticFieldSensor, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
@@ -283,10 +314,14 @@ public class MainActivity extends Activity implements SensorEventListener {
         sensorManager.unregisterListener(this);
     }
 
+    // This method contains a lot of code, many of the apps functions depend on the sensor updating continuously.
+
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
             int color;
+
+            // x y and z represent the strength of the magnetic field in three linearly independent directions, the magnitude is found by the pythagorian theorem.
 
             x = event.values[0];
             y = event.values[1];
@@ -392,6 +427,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
             animator.start();
 
+            // Magnetic strength is represented by colors ranging from green to red, this is where maglevel is set.
 
             if (m >= 100) {
                 color = getResources().getColor(R.color.level11);
@@ -460,68 +496,62 @@ public class MainActivity extends Activity implements SensorEventListener {
                 magLevel = 1;
             }
 
-            if(isRecording){
+            if(isRecording) {
                 TimerTask task = new TimerTask() {
                     @Override
                     public void run() {
                         String Content = String.format("%s,%s,%s,%s,%s", FieldValue.serverTimestamp(), m, x, y, z);
-                        writeToFile(MainActivity.this, "\\myData.txt", Content + "\n" );
+                        writeToFile(MainActivity.this, "\\myData.txt", Content + "\n");
                         System.out.println("recording");
                     }
                 };
 
 
                 timer.schedule(task, 0, 5000);
+
+
+                Map<String, Object> user = new HashMap<>();
+
+                user.put("TimeStamp", FieldValue.serverTimestamp());
+
+                user.put("Microteslas", m);
+
+                user.put("PhoneCoordsX", x);
+                user.put("PhoneCoordsY", y);
+                user.put("PhoneCoordsZ", z);
+
+
+                db.collection("JoeTest01")
+                        .add(user)
+                        .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                            @Override
+                            public void onSuccess(DocumentReference documentReference) {
+                                Log.d(TAG, "DocumentSnapshot added with ID: " + documentReference.getId());
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Log.w(TAG, "Error adding document", e);
+                            }
+                        });
+
+
+                db.collection("JoeTest01")
+                        .get()
+                        .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                if (task.isSuccessful()) {
+                                    for (QueryDocumentSnapshot document : task.getResult()) {
+                                        Log.d(TAG, document.getId() + " => " + document.getData());
+                                    }
+                                } else {
+                                    Log.w(TAG, "Error getting documents.", task.getException());
+                                }
+                            }
+                        });
             }
-
-
-//                isRecording = true;
-
-
-            // PUT new data
-//                Map<String, Object> user = new HashMap<>();
-//
-//                user.put("TimeStamp", FieldValue.serverTimestamp());
-//
-//                user.put("Microteslas", m);
-//
-//                user.put("PhoneCoordsX", x);
-//                user.put("PhoneCoordsY", y);
-//                user.put("PhoneCoordsZ", z);
-
-
-            // Add a new document with a generated ID
-//                db.collection("EdTest01")
-//                        .add(user)
-//                        .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-//                            @Override
-//                            public void onSuccess(DocumentReference documentReference) {
-//                                Log.d(TAG, "DocumentSnapshot added with ID: " + documentReference.getId());
-//                            }
-//                        })
-//                        .addOnFailureListener(new OnFailureListener() {
-//                            @Override
-//                            public void onFailure(@NonNull Exception e) {
-//                                Log.w(TAG, "Error adding document", e);
-//                            }
-//                        });
-
-
-            // Add the new code snippet here
-//                db.collection("EdTest01")
-//                        .get()
-//                        .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-//                            @Override
-//                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-//                                if (task.isSuccessful()) {
-//                                    for (QueryDocumentSnapshot document : task.getResult()) {
-//                                        Log.d(TAG, document.getId() + " => " + document.getData());
-//                                    }
-//                                } else {
-//                                    Log.w(TAG, "Error getting documents.", task.getException());
-//                                }
-//                            }
-//                        });
 
         }
     }
@@ -531,6 +561,8 @@ public class MainActivity extends Activity implements SensorEventListener {
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
         // Do nothing
     }
+
+    // The gesture listener is used to change the background of the app
 
     private class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
         private static final int SWIPE_THRESHOLD = 100;

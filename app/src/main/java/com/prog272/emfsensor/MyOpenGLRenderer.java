@@ -17,6 +17,7 @@ public class MyOpenGLRenderer implements GLSurfaceView.Renderer {
     private final float[] projectionMatrix = new float[16];
     private final float[] viewMatrix = new float[16];
 
+    // dummy data is loaded into the surface when the app is started
     public void onSurfaceCreated(GL10 unused, EGLConfig config) {
         // Set the background frame color
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -51,6 +52,8 @@ public class MyOpenGLRenderer implements GLSurfaceView.Renderer {
         }
         return sqrs;
     }
+
+    // This method contains the logic for the surface view including how to draw each square declared in onCreate.
 
     public void onDrawFrame(GL10 unused) {
         // Redraw background color
